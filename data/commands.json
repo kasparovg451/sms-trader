@@ -1,0 +1,8 @@
+[
+    {"command": "search", "value": "if you want to search message"},
+    {"command": "help", "value": "if you want to see command list"},
+    {"command": "add", "value": "if you want to add your message"},
+    {"command": "list", "value": "if you want to see all messages"},
+    {"command": "exit", "value": "if you want to break chat"},
+    {"command": "count", "value": "if you want to see message count"}
+]

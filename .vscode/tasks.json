@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "C++: собрать текущий файл (MSVC)",
+            "type": "process",
+            "command": "C:\\Windows\\System32\\cmd.exe",
+            "args": [
+                "/d",
+                "/c",
+                "D:\\Projects\\learning-journey\\scripts\\build-active-file.bat",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Собирает открытый C++-файл с предупреждениями уровня /W4."
+        }
+    ]
+}
