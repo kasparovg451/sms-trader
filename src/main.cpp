@@ -1,24 +1,19 @@
-#include <fstream>
 #include <iostream>
-#include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
-#include "headers/validation.h"
+
+#include "headers/command.h"
 #include "headers/message.h"
-#include "headers/json.h"
-
-using json = nlohmann::json;
-
-void searchMessage(const std::string& text_part){
-    
-}
+#include "headers/storage.h"
 
 int main() {
-    loadFile(smsFile);
+    const std::string commandFile{"data/commands.json"};
+    const std::string messageFile{"data/messages.json"};
+
+    loadFile(messageFile);
 
     std::string command;
 
-    printCommandList(cmdFile);
+    printCommandList(commandFile);
 
     while (true) {
         std::cout << "\n> ";
@@ -26,7 +21,7 @@ int main() {
 
         if (command == "add") {
             addMessage(messages);
-            if (saveFile(smsFile, static_cast<const std::vector<Message>&>(messages))) {
+            if (saveFile(messageFile, messages)) {
                 std::cout << "Messages saved successfully\n";
             }
         } else if (command == "list") {
@@ -34,7 +29,7 @@ int main() {
         } else if (command == "exit") {
             break;
         } else if (command == "help") {
-            printCommandList(cmdFile);
+            printCommandList(commandFile);
         } else if (command == "count") {
             std::cout << "Count of messages is " << messages.size() << std::endl;
         } else {
