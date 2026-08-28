@@ -14,7 +14,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
-add_executable(smstrader src/main.cpp)
+add_executable(smstrader
+    src/main.cpp
+    src/json.cpp
+    src/message.cpp
+    src/validation.cpp
+)
 target_link_libraries(smstrader PRIVATE nlohmann_json::nlohmann_json)
 
 if (MSVC)

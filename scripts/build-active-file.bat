@@ -1,22 +1,29 @@
 @echo off
 setlocal
 
-set "VS_DEV_CMD=C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\Tools\VsDevCmd.bat"
-set "SOURCE_FILE=%~1"
-set "BUILD_DIR=%~dp0..\build"
-set "JSON_INCLUDE_DIR=%BUILD_DIR%\cmake-smstrader\_deps\nlohmann_json-src\include"
+set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+set "PROJECT_DIR=%~dp0.."
+set "BUILD_DIR=%PROJECT_DIR%\build"
 
-if not exist "%SOURCE_FILE%" (
-    echo Source file not found: "%SOURCE_FILE%"
+if not exist "%VSWHERE%" (
+    echo Visual Studio Build Tools with the C++ workload were not found.
     exit /b 1
 )
 
-if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
+for /f "usebackq delims=" %%I in (`"%VSWHERE%" -latest -products * -property installationPath`) do set "VS_INSTALL=%%I"
 
-call "%VS_DEV_CMD%" -arch=x64 -host_arch=x64
+if not defined VS_INSTALL if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\VsDevCmd.bat" set "VS_INSTALL=%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools"
+
+if not defined VS_INSTALL (
+    echo Visual Studio Build Tools with the C++ workload were not found.
+    exit /b 1
+)
+
+call "%VS_INSTALL%\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
 if errorlevel 1 exit /b 1
 
-for %%F in ("%SOURCE_FILE%") do set "FILE_STEM=%%~nF"
+cmake -S "%PROJECT_DIR%" -B "%BUILD_DIR%"
+if errorlevel 1 exit /b 1
 
-cl.exe /nologo /std:c++20 /EHsc /W4 /Zi /I"%JSON_INCLUDE_DIR%" "%SOURCE_FILE%" /Fo:"%BUILD_DIR%\%FILE_STEM%.obj" /Fd:"%BUILD_DIR%\%FILE_STEM%.pdb" /Fe:"%BUILD_DIR%\%FILE_STEM%.exe"
+cmake --build "%BUILD_DIR%" --config Debug
 exit /b %errorlevel%

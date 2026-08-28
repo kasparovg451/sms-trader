@@ -8,7 +8,7 @@
             "args": [
                 "/d",
                 "/c",
-                "D:\\Projects\\smstrader\\scripts\\build-active-file.bat",
+                "${workspaceFolder}\\scripts\\build-active-file.bat",
                 "${file}"
             ],
             "options": {

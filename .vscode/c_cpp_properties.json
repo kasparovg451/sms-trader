@@ -3,9 +3,9 @@
     "configurations": [
         {
             "name": "Windows",
-            "compilerPath": "C:\\Program Files\\Microsoft Visual Studio\\18\\Professional\\VC\\Tools\\MSVC\\14.51.36231\\bin\\Hostx64\\x64\\cl.exe",
+            "compilerPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
             "includePath": [
-                "${workspaceFolder}/build/cmake-smstrader/_deps/nlohmann_json-src/include"
+                "${workspaceFolder}/build/_deps/nlohmann_json-src/include"
             ],
             "intelliSenseMode": "windows-msvc-x64",
             "cppStandard": "c++20",
