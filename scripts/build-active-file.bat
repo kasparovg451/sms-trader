@@ -4,7 +4,7 @@ setlocal
 set "VS_DEV_CMD=C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\Tools\VsDevCmd.bat"
 set "SOURCE_FILE=%~1"
 set "BUILD_DIR=%~dp0..\build"
-set "JSON_INCLUDE_DIR=%BUILD_DIR%\cmake\_deps\nlohmann_json-src\include"
+set "JSON_INCLUDE_DIR=%BUILD_DIR%\cmake-smstrader\_deps\nlohmann_json-src\include"
 
 if not exist "%SOURCE_FILE%" (
     echo Source file not found: "%SOURCE_FILE%"

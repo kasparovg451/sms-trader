@@ -8,7 +8,7 @@
             "args": [
                 "/d",
                 "/c",
-                "D:\\Projects\\learning-journey\\scripts\\build-active-file.bat",
+                "D:\\Projects\\smstrader\\scripts\\build-active-file.bat",
                 "${file}"
             ],
             "options": {

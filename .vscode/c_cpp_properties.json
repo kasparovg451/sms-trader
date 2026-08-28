@@ -5,7 +5,7 @@
             "name": "Windows",
             "compilerPath": "C:\\Program Files\\Microsoft Visual Studio\\18\\Professional\\VC\\Tools\\MSVC\\14.51.36231\\bin\\Hostx64\\x64\\cl.exe",
             "includePath": [
-                "${workspaceFolder}/build/cmake/_deps/nlohmann_json-src/include"
+                "${workspaceFolder}/build/cmake-smstrader/_deps/nlohmann_json-src/include"
             ],
             "intelliSenseMode": "windows-msvc-x64",
             "cppStandard": "c++20",
