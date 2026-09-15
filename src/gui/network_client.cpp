@@ -18,6 +18,7 @@ QVariantMap toVariantMap(const json& message) {
     map["author"] = QString::fromStdString(message.value("author", ""));
     map["text"] = QString::fromStdString(message.value("text", ""));
     map["relativeDate"] = QString::fromStdString(message.value("relativeDate", ""));
+    map["timestamp"] = static_cast<qlonglong>(message.value("timestamp", 0LL));
     return map;
 }
 

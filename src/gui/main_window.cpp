@@ -1,6 +1,7 @@
 #include "main_window.h"
 
 #include <QApplication>
+#include <QDateTime>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -10,9 +11,13 @@
 #include <QPushButton>
 #include <QScrollBar>
 #include <QStatusBar>
+#include <QTimeZone>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <chrono>
 
+#include "chat_input_edit.h"
+#include "headers/datetime.h"
 #include "network_client.h"
 
 MainWindow::MainWindow(NetworkClient* client, const QString& myAuthor, QWidget* parent)
@@ -35,8 +40,8 @@ MainWindow::MainWindow(NetworkClient* client, const QString& myAuthor, QWidget* 
     auto* sendRow = new QWidget(central);
     auto* sendLayout = new QHBoxLayout(sendRow);
     sendLayout->setContentsMargins(0, 0, 0, 0);
-    messageEdit_ = new QLineEdit(sendRow);
-    messageEdit_->setPlaceholderText("Сообщение...");
+    messageEdit_ = new ChatInputEdit(sendRow);
+    messageEdit_->setPlaceholderText("Сообщение... (Enter — отправить, Shift+Enter — новая строка)");
     sendButton_ = new QPushButton("Отправить", sendRow);
     sendLayout->addWidget(messageEdit_, 1);
     sendLayout->addWidget(sendButton_);
@@ -60,7 +65,7 @@ MainWindow::MainWindow(NetworkClient* client, const QString& myAuthor, QWidget* 
     connect(sendButton_, &QPushButton::clicked, this, &MainWindow::onSendClicked);
     connect(searchButton_, &QPushButton::clicked, this, &MainWindow::onSearchClicked);
     connect(showAllButton_, &QPushButton::clicked, this, &MainWindow::onShowAllClicked);
-    connect(messageEdit_, &QLineEdit::returnPressed, this, &MainWindow::onSendClicked);
+    connect(messageEdit_, &ChatInputEdit::sendRequested, this, &MainWindow::onSendClicked);
     connect(searchEdit_, &QLineEdit::returnPressed, this, &MainWindow::onSearchClicked);
 
     connect(client_, &NetworkClient::messageAdded, this, &MainWindow::onMessageAdded, Qt::QueuedConnection);
@@ -98,6 +103,9 @@ QWidget* MainWindow::buildMessageBubble(const QVariantMap& message) {
     auto* textLabel = new QLabel(text.toHtmlEscaped(), bubble);
     textLabel->setObjectName("textLabel");
     textLabel->setWordWrap(true);
+    // Позволяет выделять и копировать текст сообщения (правым кликом или
+    // Ctrl+C) — QLabel с этим флагом сам даёт стандартное контекстное меню.
+    textLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
     bubbleLayout->addWidget(textLabel);
 
     auto* dateLabel = new QLabel(relativeDate.toHtmlEscaped(), bubble);
@@ -119,9 +127,43 @@ QWidget* MainWindow::buildMessageBubble(const QVariantMap& message) {
     return row;
 }
 
+void MainWindow::addDateSeparatorIfNeeded(qint64 timestamp) {
+    QDate messageDate = QDateTime::fromSecsSinceEpoch(timestamp, QTimeZone::UTC).date();
+    if (hasLastMessageDate_ && messageDate == lastMessageDate_) {
+        return;
+    }
+    hasLastMessageDate_ = true;
+    lastMessageDate_ = messageDate;
+
+    std::chrono::year_month_day ymd{
+        std::chrono::year{messageDate.year()},
+        std::chrono::month{static_cast<unsigned>(messageDate.month())},
+        std::chrono::day{static_cast<unsigned>(messageDate.day())}
+    };
+    std::string label = formatDaySeparator(std::chrono::sys_seconds{std::chrono::sys_days{ymd}});
+
+    auto* pill = new QLabel(QString::fromStdString(label));
+    pill->setObjectName("dateSeparator");
+    pill->setAlignment(Qt::AlignCenter);
+
+    auto* row = new QWidget;
+    auto* rowLayout = new QHBoxLayout(row);
+    rowLayout->setContentsMargins(0, 8, 0, 8);
+    rowLayout->addStretch();
+    rowLayout->addWidget(pill);
+    rowLayout->addStretch();
+
+    auto* item = new QListWidgetItem();
+    item->setFlags(Qt::NoItemFlags);
+    messageList_->addItem(item);
+    messageList_->setItemWidget(item, row);
+    item->setSizeHint(row->sizeHint());
+}
+
 void MainWindow::showEmptyState() {
     messageList_->clear();
     showingEmptyState_ = true;
+    hasLastMessageDate_ = false;
 
     auto* label = new QLabel("Сообщений пока нет — напишите первое!");
     label->setObjectName("emptyStateLabel");
@@ -147,6 +189,12 @@ void MainWindow::appendMessage(const QVariantMap& message, bool forceScroll) {
     QScrollBar* scrollBar = messageList_->verticalScrollBar();
     bool wasAtBottom = forceScroll || scrollBar->value() >= scrollBar->maximum() - 4;
 
+    if (!searchMode_) {
+        // Результаты поиска отсортированы по релевантности, не по дате —
+        // разделители дней там были бы бессмысленны (даты прыгали бы туда-сюда).
+        addDateSeparatorIfNeeded(message.value("timestamp").toLongLong());
+    }
+
     QWidget* row = buildMessageBubble(message);
 
     auto* item = new QListWidgetItem();
@@ -160,7 +208,7 @@ void MainWindow::appendMessage(const QVariantMap& message, bool forceScroll) {
 }
 
 void MainWindow::onSendClicked() {
-    QString text = messageEdit_->text().trimmed();
+    QString text = messageEdit_->toPlainText().trimmed();
     if (text.isEmpty()) {
         return;
     }
@@ -216,6 +264,10 @@ void MainWindow::onListReceived(QVariantList messages) {
 
     messageList_->clear();
     showingEmptyState_ = false;
+    // Полный ребилд ленты — разделители дат надо посчитать заново, а не
+    // опираться на то, что было в ленте до этого (могли быть результаты
+    // поиска, где даты вообще не проставлялись).
+    hasLastMessageDate_ = false;
     for (const QVariant& message : messages) {
         appendMessage(message.toMap(), true);
     }

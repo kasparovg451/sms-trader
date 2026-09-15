@@ -94,9 +94,11 @@ endif()
 
 add_executable(smstrader_gui
     src/gui/main.cpp
+    src/gui/chat_input_edit.cpp
     src/gui/login_dialog.cpp
     src/gui/main_window.cpp
     src/gui/network_client.cpp
+    src/datetime.cpp
 )
 target_link_libraries(smstrader_gui PRIVATE Threads::Threads nlohmann_json::nlohmann_json Qt6::Widgets Qt6::Network Qt6::WebSockets)
 target_include_directories(smstrader_gui PRIVATE src src/gui)

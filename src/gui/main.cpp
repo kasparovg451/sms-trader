@@ -27,7 +27,15 @@ const char* kStyleSheet = R"(
     QLabel#dateLabel { color: #9aa0a6; font-size: 10px; }
     QLabel#textLabel { color: #1a1a1a; font-size: 13px; }
     QLabel#emptyStateLabel { color: #9aa0a6; font-size: 13px; padding: 24px; }
-    QLineEdit {
+    QLabel#dateSeparator {
+        background: #dfe4ea;
+        color: #5b6572;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 3px 12px;
+        border-radius: 9px;
+    }
+    QLineEdit, QPlainTextEdit {
         border: 1px solid #ccd2da;
         border-radius: 10px;
         padding: 8px 12px;

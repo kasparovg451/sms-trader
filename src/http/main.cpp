@@ -40,7 +40,11 @@ json messageToJson(const Message& message) {
         {"id", message.id},
         {"author", message.author},
         {"text", message.text},
-        {"relativeDate", formatRelativeDate(message.date)}
+        {"relativeDate", formatRelativeDate(message.date)},
+        // Unix-время (секунды) — помимо готовой строки relativeDate, чтобы
+        // клиент мог сам группировать сообщения по дням (разделители дат)
+        // без пересчёта на сервере под каждый клиентский часовой пояс.
+        {"timestamp", message.date.time_since_epoch().count()}
     };
 }
 

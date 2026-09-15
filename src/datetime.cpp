@@ -6,17 +6,30 @@
 
 #include "headers/datetime.h"
 
+using namespace std::chrono;
+
 static const std::array<const char*, 12> monthNamesGenitive {
     "января", "февраля", "марта", "апреля", "мая", "июня",
     "июля", "августа", "сентября", "октября", "ноября", "декабря"
 };
 
+// "29 августа" или "29 августа 2025" — общий хвост и для formatRelativeDate
+// (дата дальше вчера), и для formatDaySeparator (разделитель дня в GUI).
+static std::string formatDayMonth(year_month_day ymd, bool includeYear) {
+    unsigned monthIndex = static_cast<unsigned>(ymd.month()) - 1;
+    unsigned dayOfMonth = static_cast<unsigned>(ymd.day());
+
+    std::string result = std::to_string(dayOfMonth) + " " + monthNamesGenitive[monthIndex];
+    if (includeYear) {
+        result += " " + std::to_string(static_cast<int>(ymd.year()));
+    }
+    return result;
+}
+
 std::string formatRelativeDate(std::chrono::sys_seconds date) {
     auto now = std::chrono::system_clock::now();
 
     auto diff = now - date;
-
-    using namespace std::chrono;
 
     if (diff < minutes{1}) {
         return "только что";
@@ -43,19 +56,27 @@ std::string formatRelativeDate(std::chrono::sys_seconds date) {
     year_month_day messageYmd{messageDays};
     year_month_day todayYmd{todayDays};
 
-    unsigned monthIndex = static_cast<unsigned>(messageYmd.month()) - 1;
-    unsigned dayOfMonth = static_cast<unsigned>(messageYmd.day());
+    return formatDayMonth(messageYmd, messageYmd.year() != todayYmd.year());
+}
 
-    if (messageYmd.year() == todayYmd.year()) {
-        return std::to_string(dayOfMonth) + " "
-        + monthNamesGenitive[monthIndex];
+std::string formatDaySeparator(std::chrono::sys_seconds date) {
+    auto now = std::chrono::system_clock::now();
+
+    auto todayDays = floor<days>(now);
+    auto messageDays = floor<days>(date);
+    auto dayDiff = todayDays - messageDays;
+
+    if (dayDiff == days{0}) {
+        return "Сегодня";
+    }
+    if (dayDiff == days{1}) {
+        return "Вчера";
     }
 
-    int yearNumber = static_cast<int>(messageYmd.year());
+    year_month_day messageYmd{messageDays};
+    year_month_day todayYmd{todayDays};
 
-    return std::to_string(dayOfMonth) + " "
-    + monthNamesGenitive[monthIndex] + " "
-    + std::to_string(yearNumber);
+    return formatDayMonth(messageYmd, messageYmd.year() != todayYmd.year());
 }
 
 std::string dateToString(std::chrono::sys_seconds date) {

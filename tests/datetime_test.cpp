@@ -73,3 +73,22 @@ TEST_CASE("formatRelativeDate: last year's date includes the year", "[datetime]"
     std::string result = formatRelativeDate(floor<std::chrono::seconds>(date));
     CHECK(result.find(std::to_string(int(lastYear))) != std::string::npos);
 }
+
+TEST_CASE("formatDaySeparator: today and yesterday", "[datetime]") {
+    CHECK(formatDaySeparator(secondsAgo(seconds{0})) == "Сегодня");
+
+    auto todayMidnight = floor<days>(system_clock::now());
+    auto yesterdayEvening = todayMidnight - hours{1};
+    CHECK(formatDaySeparator(floor<std::chrono::seconds>(yesterdayEvening)) == "Вчера");
+}
+
+TEST_CASE("formatDaySeparator: older date shows day and month, no time", "[datetime]") {
+    auto now = system_clock::now();
+    year_month_day today{floor<days>(now)};
+    if (unsigned{today.month()} == 1 && unsigned{today.day()} <= 2) {
+        return;  // см. аналогичный тест formatRelativeDate выше
+    }
+    sys_days januaryFirst = sys_days{today.year() / January / 1};
+    std::string result = formatDaySeparator(floor<std::chrono::seconds>(januaryFirst));
+    CHECK(result == "1 января");
+}
