@@ -15,9 +15,11 @@ bool isValidMessage(const json& item) {
     item.contains("id") &&
     item.contains("author") &&
     item.contains("text") &&
+    item.contains("date") &&
     item["id"].is_number_integer() &&
     item["author"].is_string() &&
-    item["text"].is_string()
+    item["text"].is_string() &&
+    item["date"].is_string()
     );
 }
 

@@ -1,5 +1,22 @@
 .venv/
 build/
+vcpkg_installed/
 *.obj
 *.pdb
 *.ilk
+certs/
+gui_crash.log
+db_config.json
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Локальная конфигурация AI-ассистентов (Claude/Gemini/MCP) — машинно-специфична,
+# не часть проекта. AGENTS.md/GEMINI.md — генерируемые graft'ом инструкции для
+# ассистентов, тоже локальные, не трогаем руками.
+/.claude/
+/.gemini/
+/.mcp.json
+/.ignore
+/AGENTS.md
+/GEMINI.md

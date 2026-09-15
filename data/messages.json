@@ -1,37 +1,80 @@
 [
     {
-        "author": "Ada",
+        "author": "Craig",
+        "date": "2026-09-02T14:59:01Z",
         "id": 1,
-        "text": "Hello!"
+        "text": "Привет, это тест даты"
     },
     {
-        "author": "Linus",
+        "author": "Craig",
+        "date": "2026-09-07T09:27:28Z",
         "id": 2,
-        "text": "Welcome to the chat."
+        "text": "Привет всем, это тестовое сообщение о мессенджере"
     },
     {
-        "author": "killer228",
+        "author": "Ada",
+        "date": "2026-09-07T09:27:28Z",
         "id": 3,
-        "text": "sasat lohi."
+        "text": "Люблю писать код на плюсах"
     },
     {
-        "author": "vanek",
+        "author": "Craig",
+        "date": "2026-09-07T09:31:47Z",
         "id": 4,
-        "text": "ale"
+        "text": "Привет всем, это тестовое сообщение о мессенджере"
     },
     {
-        "author": "ale",
+        "author": "Ada",
+        "date": "2026-09-07T09:31:48Z",
         "id": 5,
-        "text": "vanek"
+        "text": "Люблю писать код на плюсах"
     },
     {
-        "author": "name",
+        "author": "Grace",
+        "date": "2026-09-07T15:56:00Z",
         "id": 6,
-        "text": "text"
+        "text": "Проверка нового хранилища"
     },
     {
-        "author": "yulia",
+        "author": "vanchous",
+        "date": "2026-09-07T16:05:57Z",
         "id": 7,
         "text": "privet"
+    },
+    {
+        "author": "NetClient",
+        "date": "2026-09-07T17:12:19Z",
+        "id": 8,
+        "text": "Hello via real MessageStore over TLS"
+    },
+    {
+        "author": "ванёк",
+        "date": "2026-09-08T12:26:12Z",
+        "id": 9,
+        "text": "привет"
+    },
+    {
+        "author": "иванстер",
+        "date": "2026-09-08T14:03:26Z",
+        "id": 10,
+        "text": "здарова"
+    },
+    {
+        "author": "ванчоус",
+        "date": "2026-09-08T14:15:09Z",
+        "id": 11,
+        "text": "здарова"
+    },
+    {
+        "author": "ало",
+        "date": "2026-09-08T14:24:57Z",
+        "id": 12,
+        "text": "ало"
+    },
+    {
+        "author": "ало",
+        "date": "2026-09-08T14:24:58Z",
+        "id": 13,
+        "text": "ало"
     }
 ]

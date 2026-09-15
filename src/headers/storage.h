@@ -5,7 +5,7 @@
 
 #include "message.h"
 
-void loadFile(const std::string& fileName);
+std::vector<Message> loadFile(const std::string& fileName);
 
 bool saveFile(
     const std::string& fileName,

@@ -1,0 +1,4 @@
+{
+    "connection_string": "postgresql://smstrader:your_password_here@127.0.0.1:5432/smstrader",
+    "jwt_secret": "generate with: openssl rand -hex 32"
+}

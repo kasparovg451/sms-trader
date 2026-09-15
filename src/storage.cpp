@@ -2,16 +2,20 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include "headers/storage.h"
 #include "headers/validation.h"
+#include "headers/datetime.h"
 
-void loadFile(const std::string& fileName) {
+std::vector<Message> loadFile(const std::string& fileName) {
+    std::vector<Message> messages;
+
     std::ifstream file(fileName);
 
     if (!file.is_open()) {
         std::cout << "File is not found\n";
-        return;
+        return messages;
     }
 
     json data;
@@ -21,12 +25,12 @@ void loadFile(const std::string& fileName) {
     }
     catch (const json::parse_error& error) {
         std::cout << "JSON reading error: " << error.what() << '\n';
-        return;
+        return messages;
     }
 
     if (!data.is_array()) {
         std::cout << "JSON root is not an array.\n";
-        return;
+        return messages;
     }
 
     std::cout << "JSON contains " << data.size() << " messages.\n";
@@ -40,9 +44,11 @@ void loadFile(const std::string& fileName) {
         const int id = item["id"].get<int>();
         const std::string author = item["author"].get<std::string>();
         const std::string text = item["text"].get<std::string>();
-
-        messages.push_back(Message{id, author, text});
+        const auto date = item["date"].get<std::string>();
+        messages.push_back(Message{id, author, text, stringToDate(date)});
     }
+
+    return messages;
 }
 
 bool saveFile(
@@ -55,7 +61,8 @@ bool saveFile(
         data.push_back({
             {"id", message.id},
             {"author", message.author},
-            {"text", message.text}
+            {"text", message.text},
+            {"date", dateToString(message.date)}
         });
     }
 

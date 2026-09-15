@@ -1,0 +1,16 @@
+{
+  "name": "smstrader",
+  "version": "0.1.0",
+  "dependencies": [
+    "openssl",
+    "asio",
+    "argon2",
+    "jwt-cpp",
+    {
+      "name": "qtbase",
+      "features": ["widgets", "network"]
+    },
+    "qtwebsockets"
+  ],
+  "builtin-baseline": "04a9d8e5212d01ee1dd9478eadd9caade4f8b0d4"
+}

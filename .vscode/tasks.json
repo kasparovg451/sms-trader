@@ -8,8 +8,7 @@
             "args": [
                 "/d",
                 "/c",
-                "${workspaceFolder}\\scripts\\build-active-file.bat",
-                "${file}"
+                "${workspaceFolder}\\scripts\\build-active-file.bat"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

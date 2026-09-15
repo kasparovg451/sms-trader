@@ -22,8 +22,8 @@ if not defined VS_INSTALL (
 call "%VS_INSTALL%\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
 if errorlevel 1 exit /b 1
 
-cmake -S "%PROJECT_DIR%" -B "%BUILD_DIR%"
+cmake --preset default -S "%PROJECT_DIR%"
 if errorlevel 1 exit /b 1
 
-cmake --build "%BUILD_DIR%" --config Debug
+cmake --build --preset default
 exit /b %errorlevel%

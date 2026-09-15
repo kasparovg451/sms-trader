@@ -1,10 +1,11 @@
+#include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "headers/message.h"
-
-std::vector<Message> messages;
 
 void printMessages(const std::vector<Message>& messageList) {
     for (const Message& message : messageList) {
@@ -12,17 +13,21 @@ void printMessages(const std::vector<Message>& messageList) {
     }
 }
 
-void addMessage(std::vector<Message>& messageList) {
-    int id = static_cast<int>(messageList.size() + 1);
-    std::string author;
-    std::string text;
+void MessageStore::add(const std::string& author, const std::string& text) {
+    auto now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
+    messages_.push_back(Message{nextId_, author, text, now});
+    ++nextId_;
+}
 
-    std::cout << "Your name: ";
-    std::getline(std::cin, author);
+void MessageStore::addLoaded(Message message) {
+    nextId_ = std::max(nextId_, message.id + 1);
+    messages_.push_back(std::move(message));
+}
 
-    std::cout << "Your message: ";
-    std::getline(std::cin, text);
+const std::vector<Message>& MessageStore::all() const {
+    return messages_;
+}
 
-    Message message{id, author, text};
-    messageList.push_back(message);
+size_t MessageStore::count() const {
+    return messages_.size();
 }
