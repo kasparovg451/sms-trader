@@ -26,6 +26,7 @@ const char* kStyleSheet = R"(
     QLabel#authorLabel { color: #2f6fed; font-weight: bold; font-size: 12px; }
     QLabel#dateLabel { color: #9aa0a6; font-size: 10px; }
     QLabel#textLabel { color: #1a1a1a; font-size: 13px; }
+    QLabel#emptyStateLabel { color: #9aa0a6; font-size: 13px; padding: 24px; }
     QLineEdit {
         border: 1px solid #ccd2da;
         border-radius: 10px;
@@ -67,14 +68,21 @@ int main(int argc, char* argv[]) {
 
         // Цикл: при неверном пароле/занятом имени и т.п. снова показываем
         // диалог, а не падаем — пользователь мог просто опечататься.
+        // lastUsername сохраняет введённое имя между попытками — не заставляем
+        // перепечатывать его заново после одной лишь ошибки в пароле.
+        QString lastUsername;
         while (true) {
             LoginDialog dialog;
+            if (!lastUsername.isEmpty()) {
+                dialog.setUsername(lastUsername);
+            }
             if (dialog.exec() != QDialog::Accepted) {
                 return 0;
             }
 
             QString username = dialog.username();
             QString password = dialog.password();
+            lastUsername = username;
             if (username.isEmpty() || password.isEmpty()) {
                 QMessageBox::warning(nullptr, "SMSTrader", "Имя пользователя и пароль обязательны");
                 continue;

@@ -41,6 +41,10 @@ signals:
     void disconnectedFromServer();
     // Реально (пере)подключились и можем снова слать/принимать.
     void connectedToServer();
+    // POST /messages завершился (успехом или ошибкой) — сигнал для UI,
+    // чтобы разблокировать кнопку "Отправить" и не дать наплодить дублей
+    // повторными кликами, пока первый запрос ещё летит.
+    void messageSendFinished();
 
 private slots:
     void onSocketConnected();

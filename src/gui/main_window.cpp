@@ -68,7 +68,10 @@ MainWindow::MainWindow(NetworkClient* client, const QString& myAuthor, QWidget* 
     connect(client_, &NetworkClient::errorReceived, this, &MainWindow::onErrorReceived, Qt::QueuedConnection);
     connect(client_, &NetworkClient::disconnectedFromServer, this, &MainWindow::onDisconnected, Qt::QueuedConnection);
     connect(client_, &NetworkClient::connectedToServer, this, &MainWindow::onReconnected, Qt::QueuedConnection);
+    connect(client_, &NetworkClient::messageSendFinished, this, &MainWindow::onMessageSendFinished, Qt::QueuedConnection);
 
+    messageEdit_->setFocus();
+    statusBar()->showMessage("Загрузка сообщений...");
     client_->sendList();
 }
 
@@ -116,7 +119,31 @@ QWidget* MainWindow::buildMessageBubble(const QVariantMap& message) {
     return row;
 }
 
+void MainWindow::showEmptyState() {
+    messageList_->clear();
+    showingEmptyState_ = true;
+
+    auto* label = new QLabel("Сообщений пока нет — напишите первое!");
+    label->setObjectName("emptyStateLabel");
+    label->setAlignment(Qt::AlignCenter);
+    label->setWordWrap(true);
+
+    auto* item = new QListWidgetItem();
+    item->setFlags(Qt::NoItemFlags);
+    messageList_->addItem(item);
+    messageList_->setItemWidget(item, label);
+    item->setSizeHint(label->sizeHint());
+}
+
 void MainWindow::appendMessage(const QVariantMap& message, bool forceScroll) {
+    if (showingEmptyState_) {
+        // Заглушка "сообщений пока нет" должна исчезнуть, как только
+        // появляется хоть одно настоящее сообщение — иначе останется висеть
+        // сверху ленты вперемешку с реальными сообщениями.
+        messageList_->clear();
+        showingEmptyState_ = false;
+    }
+
     QScrollBar* scrollBar = messageList_->verticalScrollBar();
     bool wasAtBottom = forceScroll || scrollBar->value() >= scrollBar->maximum() - 4;
 
@@ -138,6 +165,9 @@ void MainWindow::onSendClicked() {
         return;
     }
 
+    // Блокируем кнопку до ответа сервера — иначе двойной клик/двойной Enter
+    // до прихода первого ответа отправит одно и то же сообщение дважды.
+    sendButton_->setEnabled(false);
     client_->sendAdd(text);
     messageEdit_->clear();
 }
@@ -177,7 +207,15 @@ void MainWindow::onMessageAdded(QVariantMap message) {
 }
 
 void MainWindow::onListReceived(QVariantList messages) {
+    statusBar()->clearMessage();
+
+    if (messages.isEmpty()) {
+        showEmptyState();
+        return;
+    }
+
     messageList_->clear();
+    showingEmptyState_ = false;
     for (const QVariant& message : messages) {
         appendMessage(message.toMap(), true);
     }
@@ -187,15 +225,23 @@ void MainWindow::onErrorReceived(QString message) {
     statusBar()->showMessage("Ошибка: " + message, 5000);
 }
 
+void MainWindow::onMessageSendFinished() {
+    if (connected_) {
+        sendButton_->setEnabled(true);
+    }
+}
+
 void MainWindow::onDisconnected() {
     // Не навсегда: NetworkClient сам пробует переподключиться раз в 3 секунды
     // (см. network_client.cpp) — просто не даём слать сообщения, пока связи нет.
+    connected_ = false;
     statusBar()->showMessage("Соединение потеряно, переподключаемся...");
     sendButton_->setEnabled(false);
     searchButton_->setEnabled(false);
 }
 
 void MainWindow::onReconnected() {
+    connected_ = true;
     statusBar()->clearMessage();
     sendButton_->setEnabled(true);
     searchButton_->setEnabled(true);

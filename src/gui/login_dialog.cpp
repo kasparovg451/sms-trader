@@ -1,5 +1,6 @@
 #include "login_dialog.h"
 
+#include <QCheckBox>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -20,6 +21,12 @@ LoginDialog::LoginDialog(QWidget* parent) : QDialog(parent) {
     passwordEdit_->setEchoMode(QLineEdit::Password);
     layout->addWidget(passwordEdit_);
 
+    auto* showPasswordCheckbox = new QCheckBox("Показать пароль", this);
+    layout->addWidget(showPasswordCheckbox);
+    connect(showPasswordCheckbox, &QCheckBox::toggled, this, [this](bool checked) {
+        passwordEdit_->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
+    });
+
     auto* buttons = new QDialogButtonBox(this);
     QPushButton* loginButton = buttons->addButton("Войти", QDialogButtonBox::AcceptRole);
     QPushButton* registerButton = buttons->addButton("Регистрация", QDialogButtonBox::ActionRole);
@@ -32,6 +39,10 @@ LoginDialog::LoginDialog(QWidget* parent) : QDialog(parent) {
 
     // Enter в поле пароля — как нажатие "Войти", самый частый путь.
     connect(passwordEdit_, &QLineEdit::returnPressed, this, &LoginDialog::onLoginClicked);
+}
+
+void LoginDialog::setUsername(const QString& username) {
+    usernameEdit_->setText(username);
 }
 
 QString LoginDialog::username() const {
