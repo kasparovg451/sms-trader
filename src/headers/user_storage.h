@@ -1,10 +1,9 @@
 #pragma once
 
-#include <libpq-fe.h>
-#include <memory>
-#include <mutex>
 #include <optional>
 #include <string>
+
+#include "pg_connection.h"
 
 struct User {
     int id;
@@ -23,10 +22,5 @@ public:
     std::optional<User> findByUsername(const std::string& username);
 
 private:
-    struct ConnDeleter {
-        void operator()(PGconn* connection) const;
-    };
-
-    std::mutex connectionMutex_;
-    std::unique_ptr<PGconn, ConnDeleter> connection_;
+    PgConnection connection_;
 };

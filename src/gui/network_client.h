@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QObject>
 #include <QSslConfiguration>
 #include <QString>
@@ -55,6 +57,11 @@ private slots:
 private:
     QSslConfiguration sslConfigTrustingServerCert() const;
     QString baseUrl() const;
+    // Запрос с Bearer-токеном и доверием серверному сертификату — для всего,
+    // что после логина (сервер требует токен и на чтение, не только на запись).
+    QNetworkRequest authorizedRequest(const QUrl& url) const;
+    // Общий разбор ответа со списком сообщений (GET /messages и поиск).
+    void handleMessageListReply(QNetworkReply* reply);
 
     QNetworkAccessManager network_;
     QWebSocket socket_;

@@ -127,7 +127,12 @@ void NetworkClient::connectRealtime() {
         return;
     }
     socket_.setSslConfiguration(sslConfigTrustingServerCert());
-    socket_.open(QUrl("wss://localhost:8080/ws"));
+    // Токен — заголовком при рукопожатии (сервер проверяет в onaccept), а не
+    // в ?token= — так он не попадёт в логи прокси. QWebSocket::open(QUrl)
+    // заголовки ставить не умеет, нужна перегрузка с QNetworkRequest.
+    QNetworkRequest request(QUrl("wss://localhost:8080/ws"));
+    request.setRawHeader("Authorization", "Bearer " + jwtToken_.toUtf8());
+    socket_.open(request);
 }
 
 void NetworkClient::onSocketConnected() {
@@ -164,10 +169,8 @@ void NetworkClient::onSocketError() {
 }
 
 void NetworkClient::sendAdd(const QString& text) {
-    QNetworkRequest request(QUrl(baseUrl() + "/messages"));
+    QNetworkRequest request = authorizedRequest(QUrl(baseUrl() + "/messages"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader("Authorization", "Bearer " + jwtToken_.toUtf8());
-    request.setSslConfiguration(sslConfigTrustingServerCert());
 
     json body{{"text", text.toStdString()}};
     QNetworkReply* reply = network_.post(request, QByteArray::fromStdString(body.dump()));
@@ -191,28 +194,43 @@ void NetworkClient::sendAdd(const QString& text) {
     });
 }
 
-void NetworkClient::sendList() {
-    QNetworkRequest request(QUrl(baseUrl() + "/messages"));
-    request.setSslConfiguration(sslConfigTrustingServerCert());
-
-    QNetworkReply* reply = network_.get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        json response;
-        try {
-            response = json::parse(reply->readAll().toStdString());
-        } catch (const json::parse_error&) {
-            emit errorReceived("Malformed response from server");
-            reply->deleteLater();
-            return;
-        }
-
-        QVariantList messages;
-        for (const json& message : response) {
-            messages << toVariantMap(message);
-        }
-        emit listReceived(messages);
+void NetworkClient::handleMessageListReply(QNetworkReply* reply) {
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    json response;
+    try {
+        response = json::parse(reply->readAll().toStdString());
+    } catch (const json::parse_error&) {
+        emit errorReceived("Malformed response from server");
         reply->deleteLater();
-    });
+        return;
+    }
+    reply->deleteLater();
+
+    // При ошибке (401 — токен протух, 5xx) сервер отдаёт объект {"error": ...},
+    // не массив — итерироваться по нему как по списку сообщений нельзя.
+    if (statusCode != 200 || !response.is_array()) {
+        std::string error = response.is_object() ? response.value("error", "server error") : "server error";
+        emit errorReceived(QString::fromStdString(error));
+        return;
+    }
+
+    QVariantList messages;
+    for (const json& message : response) {
+        messages << toVariantMap(message);
+    }
+    emit listReceived(messages);
+}
+
+QNetworkRequest NetworkClient::authorizedRequest(const QUrl& url) const {
+    QNetworkRequest request(url);
+    request.setSslConfiguration(sslConfigTrustingServerCert());
+    request.setRawHeader("Authorization", "Bearer " + jwtToken_.toUtf8());
+    return request;
+}
+
+void NetworkClient::sendList() {
+    QNetworkReply* reply = network_.get(authorizedRequest(QUrl(baseUrl() + "/messages")));
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleMessageListReply(reply); });
 }
 
 void NetworkClient::sendSearch(const QString& query) {
@@ -221,25 +239,6 @@ void NetworkClient::sendSearch(const QString& query) {
     urlQuery.addQueryItem("q", query);
     url.setQuery(urlQuery);
 
-    QNetworkRequest request(url);
-    request.setSslConfiguration(sslConfigTrustingServerCert());
-
-    QNetworkReply* reply = network_.get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        json response;
-        try {
-            response = json::parse(reply->readAll().toStdString());
-        } catch (const json::parse_error&) {
-            emit errorReceived("Malformed response from server");
-            reply->deleteLater();
-            return;
-        }
-
-        QVariantList messages;
-        for (const json& message : response) {
-            messages << toVariantMap(message);
-        }
-        emit listReceived(messages);
-        reply->deleteLater();
-    });
+    QNetworkReply* reply = network_.get(authorizedRequest(url));
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { handleMessageListReply(reply); });
 }

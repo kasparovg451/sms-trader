@@ -78,6 +78,7 @@ add_executable(smstrader_server
     src/datetime.cpp
     src/search.cpp
     src/postgres_storage.cpp
+    src/pg_connection.cpp
 )
 target_link_libraries(smstrader_server PRIVATE asio Threads::Threads OpenSSL::SSL OpenSSL::Crypto nlohmann_json::nlohmann_json PostgreSQL::PostgreSQL)
 target_include_directories(smstrader_server PRIVATE src)
@@ -133,6 +134,8 @@ add_executable(smstrader_http
     src/message.cpp
     src/datetime.cpp
     src/search.cpp
+    src/validation.cpp
+    src/pg_connection.cpp
     src/postgres_storage.cpp
     src/user_storage.cpp
     src/password_hash.cpp
