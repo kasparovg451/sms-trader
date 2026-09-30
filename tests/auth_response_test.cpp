@@ -59,3 +59,14 @@ TEST_CASE("parseLoginResponse: rejected credentials expose server error") {
     REQUIRE_FALSE(result.success);
     REQUIRE(result.error == "invalid username or password");
 }
+
+TEST_CASE("parseLoginResponse: HTTP rejection keeps the server JSON error") {
+    const AuthResponse response = parseLoginResponse(
+        401,
+        R"({"error":"invalid username or password"})",
+        "Host requires authentication"
+    );
+
+    REQUIRE_FALSE(response.success);
+    REQUIRE(response.error == "invalid username or password");
+}

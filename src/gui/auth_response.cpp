@@ -27,7 +27,7 @@ AuthResponse parseRegistrationResponse(
     const std::string& responseBody,
     const std::string& transportError
 ) {
-    if (!transportError.empty()) {
+    if (statusCode == 0 && !transportError.empty()) {
         return transportFailure(transportError);
     }
     if (statusCode == 201) {
@@ -41,7 +41,7 @@ AuthResponse parseLoginResponse(
     const std::string& responseBody,
     const std::string& transportError
 ) {
-    if (!transportError.empty()) {
+    if (statusCode == 0 && !transportError.empty()) {
         return transportFailure(transportError);
     }
 
