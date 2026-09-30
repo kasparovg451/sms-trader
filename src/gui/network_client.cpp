@@ -8,6 +8,8 @@
 #include <QUrlQuery>
 #include <nlohmann/json.hpp>
 
+#include <utility>
+
 using json = nlohmann::json;
 
 namespace {
@@ -24,7 +26,8 @@ QVariantMap toVariantMap(const json& message) {
 
 }  // namespace
 
-NetworkClient::NetworkClient(QObject* parent) : QObject(parent) {
+NetworkClient::NetworkClient(QString apiBaseUrl, QObject* parent)
+    : QObject(parent), apiBaseUrl_(std::move(apiBaseUrl)) {
     connect(&socket_, &QWebSocket::connected, this, &NetworkClient::onSocketConnected);
     connect(&socket_, &QWebSocket::textMessageReceived, this, &NetworkClient::onSocketTextMessage);
     connect(&socket_, &QWebSocket::disconnected, this, &NetworkClient::onSocketDisconnected);
@@ -35,10 +38,7 @@ NetworkClient::NetworkClient(QObject* parent) : QObject(parent) {
 }
 
 QString NetworkClient::baseUrl() const {
-    // "localhost", не "127.0.0.1" — сертификат сервера выписан на CN=localhost,
-    // и Qt (в отличие от старого клиента на Asio) сверяет имя хоста из URL
-    // с сертификатом по умолчанию, автоматически, без ручного verify_callback.
-    return "https://localhost:8080";
+    return apiBaseUrl_;
 }
 
 QSslConfiguration NetworkClient::sslConfigTrustingServerCert() const {
@@ -130,7 +130,11 @@ void NetworkClient::connectRealtime() {
     // Токен — заголовком при рукопожатии (сервер проверяет в onaccept), а не
     // в ?token= — так он не попадёт в логи прокси. QWebSocket::open(QUrl)
     // заголовки ставить не умеет, нужна перегрузка с QNetworkRequest.
-    QNetworkRequest request(QUrl("wss://localhost:8080/ws"));
+    QUrl realtimeUrl(apiBaseUrl_);
+    realtimeUrl.setScheme(realtimeUrl.scheme() == "https" ? "wss" : "ws");
+    realtimeUrl.setPath("/ws");
+    realtimeUrl.setQuery(QString());
+    QNetworkRequest request(realtimeUrl);
     request.setRawHeader("Authorization", "Bearer " + jwtToken_.toUtf8());
     socket_.open(request);
 }

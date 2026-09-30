@@ -6,6 +6,7 @@
 #include "login_dialog.h"
 #include "main_window.h"
 #include "network_client.h"
+#include "app_config.h"
 
 namespace {
 const char* kStyleSheet = R"(
@@ -84,7 +85,8 @@ int main(int argc, char* argv[]) {
         // (проверено логированием). На уровне QApplication работает надёжно.
         app.setStyleSheet(kStyleSheet);
 
-        NetworkClient client;
+        const AppConfig config = loadAppConfig("app_config.json");
+        NetworkClient client(QString::fromStdString(config.apiBaseUrl));
 
         // Цикл: при неверном пароле/занятом имени и т.п. снова показываем
         // диалог, а не падаем — пользователь мог просто опечататься.

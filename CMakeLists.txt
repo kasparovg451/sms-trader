@@ -95,6 +95,7 @@ endif()
 
 add_executable(smstrader_gui
     src/gui/main.cpp
+    src/gui/app_config.cpp
     src/gui/chat_input_edit.cpp
     src/gui/login_dialog.cpp
     src/gui/main_window.cpp
@@ -165,12 +166,14 @@ enable_testing()
 # файла, GUI, сетевой код) тестами не покрываем — там нечего проверять
 # юнит-тестом, кроме "компилируется и не падает", что уже даёт сама сборка.
 add_executable(smstrader_tests
+    tests/app_config_test.cpp
     tests/command_test.cpp
     tests/datetime_test.cpp
     tests/password_hash_test.cpp
     tests/search_test.cpp
     tests/validation_test.cpp
     src/command.cpp
+    src/gui/app_config.cpp
     src/datetime.cpp
     src/password_hash.cpp
     src/search.cpp

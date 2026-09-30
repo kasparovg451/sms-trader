@@ -20,7 +20,7 @@ class NetworkClient : public QObject {
     Q_OBJECT
 
 public:
-    explicit NetworkClient(QObject* parent = nullptr);
+    explicit NetworkClient(QString apiBaseUrl = "https://localhost:8080", QObject* parent = nullptr);
 
     // Обе синхронные (крутят локальный QEventLoop) — вызываются один раз при
     // старте приложения, до показа главного окна, так что блокировка на время
@@ -65,6 +65,7 @@ private:
 
     QNetworkAccessManager network_;
     QWebSocket socket_;
+    QString apiBaseUrl_;
     QString jwtToken_;
     // WS у Qt сам не переподключается — без этого таймера обрыв связи
     // (сон ноутбука, перезапуск сервера) означал бы "открой GUI заново".
