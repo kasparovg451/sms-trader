@@ -132,6 +132,21 @@ add_custom_command(TARGET smstrader_gui POST_BUILD
     COMMENT "Copying Qt TLS backend plugin"
 )
 
+install(TARGETS smstrader_gui
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION .
+    COMPONENT Runtime
+)
+install(FILES app_config.example.json DESTINATION . RENAME app_config.json COMPONENT Runtime)
+install(FILES certs/server.crt DESTINATION certs OPTIONAL COMPONENT Runtime)
+
+qt_generate_deploy_app_script(
+    TARGET smstrader_gui
+    OUTPUT_SCRIPT smstrader_gui_deploy_script
+    NO_UNSUPPORTED_PLATFORM_ERROR
+)
+install(SCRIPT ${smstrader_gui_deploy_script} COMPONENT Runtime)
+
 add_executable(smstrader_http
     src/http/main.cpp
     src/message.cpp
@@ -202,6 +217,7 @@ catch_discover_tests(smstrader_tests)
 
 add_executable(main_window_layout_test
     tests/main_window_layout_test.cpp
+    src/gui/auth_response.cpp
     src/gui/chat_input_edit.cpp
     src/gui/main_window.cpp
     src/gui/network_client.cpp

@@ -1,0 +1,73 @@
+name: Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-test-package:
+    runs-on: windows-2022
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/vcpkg_installed
+            ~/AppData/Local/vcpkg/archives
+          key: windows-vcpkg-${{ hashFiles('vcpkg.json') }}
+
+      - name: Configure CMake
+        shell: pwsh
+        run: >-
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build and test
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --target smstrader_tests main_window_layout_test -- /m:1
+          ctest --test-dir build -C Release --output-on-failure
+
+      - name: Download previous release for delta generation
+        shell: pwsh
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force dist/releases | Out-Null
+          gh release download --dir dist/releases --pattern '*.nupkg' --pattern 'releases.*.json'
+
+      - name: Package Velopack release
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Release tag must look like v1.2.3; got $env:GITHUB_REF_NAME"
+          }
+          .\scripts\package-windows.ps1 -Version $version
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SMSTrader-${{ github.ref_name }}-windows
+          path: dist/releases/*
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$env:GITHUB_REF_NAME" dist/releases/* --generate-notes --verify-tag
