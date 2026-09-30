@@ -190,3 +190,23 @@ endif()
 include(CTest)
 include(Catch)
 catch_discover_tests(smstrader_tests)
+
+add_executable(main_window_layout_test
+    tests/main_window_layout_test.cpp
+    src/gui/chat_input_edit.cpp
+    src/gui/main_window.cpp
+    src/gui/network_client.cpp
+    src/datetime.cpp
+)
+target_link_libraries(main_window_layout_test PRIVATE
+    Threads::Threads
+    nlohmann_json::nlohmann_json
+    Qt6::Widgets
+    Qt6::Network
+    Qt6::WebSockets
+)
+target_include_directories(main_window_layout_test PRIVATE src src/gui)
+if (MSVC)
+    target_compile_options(main_window_layout_test PRIVATE /W4 /EHsc)
+endif()
+add_test(NAME main_window_layout_test COMMAND main_window_layout_test)

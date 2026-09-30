@@ -23,42 +23,76 @@
 MainWindow::MainWindow(NetworkClient* client, const QString& myAuthor, QWidget* parent)
     : QMainWindow(parent), client_(client), myAuthor_(myAuthor) {
     setWindowTitle("SMSTrader — " + myAuthor);
-    resize(480, 680);
+    resize(760, 720);
+    setMinimumSize(620, 560);
 
     auto* central = new QWidget(this);
     central->setObjectName("central");
     auto* layout = new QVBoxLayout(central);
-    layout->setContentsMargins(12, 12, 12, 12);
-    layout->setSpacing(10);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    auto* header = new QWidget(central);
+    header->setObjectName("chatHeader");
+    auto* headerLayout = new QHBoxLayout(header);
+    headerLayout->setContentsMargins(20, 12, 20, 12);
+    headerLayout->setSpacing(12);
+
+    auto* titleColumn = new QVBoxLayout;
+    titleColumn->setContentsMargins(0, 0, 0, 0);
+    titleColumn->setSpacing(1);
+    auto* title = new QLabel("smstrader", header);
+    title->setObjectName("headerTitle");
+    auto* subtitle = new QLabel("Global conversation", header);
+    subtitle->setObjectName("headerSubtitle");
+    titleColumn->addWidget(title);
+    titleColumn->addWidget(subtitle);
+    headerLayout->addLayout(titleColumn);
+    headerLayout->addStretch();
+
+    auto* account = new QLabel("●  " + myAuthor, header);
+    account->setObjectName("accountLabel");
+    headerLayout->addWidget(account);
+    layout->addWidget(header);
+
+    auto* searchRow = new QWidget(central);
+    searchRow->setObjectName("searchBar");
+    auto* searchLayout = new QHBoxLayout(searchRow);
+    searchLayout->setContentsMargins(16, 9, 16, 9);
+    searchLayout->setSpacing(8);
+    searchEdit_ = new QLineEdit(searchRow);
+    searchEdit_->setObjectName("searchInput");
+    searchEdit_->setPlaceholderText("Search messages");
+    searchButton_ = new QPushButton("Search", searchRow);
+    searchButton_->setObjectName("searchButton");
+    showAllButton_ = new QPushButton("Show all", searchRow);
+    showAllButton_->setObjectName("showAllButton");
+    showAllButton_->setVisible(false);
+    searchLayout->addWidget(searchEdit_, 1);
+    searchLayout->addWidget(searchButton_);
+    searchLayout->addWidget(showAllButton_);
+    layout->addWidget(searchRow);
 
     messageList_ = new QListWidget(central);
+    messageList_->setObjectName("messageList");
     messageList_->setSelectionMode(QAbstractItemView::NoSelection);
     messageList_->setFocusPolicy(Qt::NoFocus);
     messageList_->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     layout->addWidget(messageList_, 1);
 
     auto* sendRow = new QWidget(central);
+    sendRow->setObjectName("messageComposer");
     auto* sendLayout = new QHBoxLayout(sendRow);
-    sendLayout->setContentsMargins(0, 0, 0, 0);
+    sendLayout->setContentsMargins(16, 11, 16, 14);
+    sendLayout->setSpacing(8);
     messageEdit_ = new ChatInputEdit(sendRow);
-    messageEdit_->setPlaceholderText("Сообщение... (Enter — отправить, Shift+Enter — новая строка)");
-    sendButton_ = new QPushButton("Отправить", sendRow);
+    messageEdit_->setObjectName("messageInput");
+    messageEdit_->setPlaceholderText("Write a message  •  Enter to send, Shift + Enter for a new line");
+    sendButton_ = new QPushButton("Send", sendRow);
+    sendButton_->setObjectName("sendButton");
     sendLayout->addWidget(messageEdit_, 1);
     sendLayout->addWidget(sendButton_);
     layout->addWidget(sendRow);
-
-    auto* searchRow = new QWidget(central);
-    auto* searchLayout = new QHBoxLayout(searchRow);
-    searchLayout->setContentsMargins(0, 0, 0, 0);
-    searchEdit_ = new QLineEdit(searchRow);
-    searchEdit_->setPlaceholderText("Поиск...");
-    searchButton_ = new QPushButton("Искать", searchRow);
-    showAllButton_ = new QPushButton("Показать все", searchRow);
-    showAllButton_->setVisible(false);
-    searchLayout->addWidget(searchEdit_, 1);
-    searchLayout->addWidget(searchButton_);
-    searchLayout->addWidget(showAllButton_);
-    layout->addWidget(searchRow);
 
     setCentralWidget(central);
 
