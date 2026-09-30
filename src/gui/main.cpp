@@ -7,6 +7,7 @@
 #include "main_window.h"
 #include "network_client.h"
 #include "app_config.h"
+#include "auth_flow.h"
 
 namespace {
 const char* kStyleSheet = R"(
@@ -110,16 +111,28 @@ int main(int argc, char* argv[]) {
                 continue;
             }
 
-            QString error;
-            if (dialog.action() == LoginDialog::Action::Register) {
-                if (!client.registerUser(username, password, error)) {
-                    QMessageBox::warning(nullptr, "Ошибка регистрации", error);
-                    continue;
+            const AuthIntent intent = dialog.action() == LoginDialog::Action::Register
+                ? AuthIntent::Register
+                : AuthIntent::Login;
+            const AuthFlowResult authentication = runAuthFlow(
+                intent,
+                [&client, &username, &password] {
+                    QString error;
+                    const bool success = client.registerUser(username, password, error);
+                    return AuthFlowResult{success, error.toStdString()};
+                },
+                [&client, &username, &password] {
+                    QString error;
+                    const bool success = client.login(username, password, error);
+                    return AuthFlowResult{success, error.toStdString()};
                 }
-            }
-
-            if (!client.login(username, password, error)) {
-                QMessageBox::warning(nullptr, "Ошибка входа", error);
+            );
+            if (!authentication.success) {
+                QMessageBox::warning(
+                    nullptr,
+                    "Ошибка авторизации",
+                    QString::fromStdString(authentication.error)
+                );
                 continue;
             }
 

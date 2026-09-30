@@ -1,4 +1,5 @@
 #include "network_client.h"
+#include "auth_response.h"
 
 #include <QEventLoop>
 #include <QFile>
@@ -69,22 +70,19 @@ bool NetworkClient::login(const QString& username, const QString& password, QStr
 
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QByteArray responseBody = reply->readAll();
+    const std::string transportError = reply->error() == QNetworkReply::NoError
+        ? std::string{}
+        : reply->errorString().toStdString();
     reply->deleteLater();
 
-    json response;
-    try {
-        response = json::parse(responseBody.toStdString());
-    } catch (const json::parse_error&) {
-        errorMessage = "Сервер прислал некорректный ответ";
+    const AuthResponse response = parseLoginResponse(statusCode, responseBody.toStdString(), transportError);
+    if (!response.success) {
+        errorMessage = QString::fromStdString(response.error);
         return false;
     }
 
-    if (statusCode != 200) {
-        errorMessage = QString::fromStdString(response.value("error", "неизвестная ошибка входа"));
-        return false;
-    }
-
-    jwtToken_ = QString::fromStdString(response.value("token", ""));
+    jwtToken_ = QString::fromStdString(response.token);
+    errorMessage.clear();
     return true;
 }
 
@@ -103,19 +101,22 @@ bool NetworkClient::registerUser(const QString& username, const QString& passwor
 
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QByteArray responseBody = reply->readAll();
+    const std::string transportError = reply->error() == QNetworkReply::NoError
+        ? std::string{}
+        : reply->errorString().toStdString();
     reply->deleteLater();
 
-    if (statusCode != 201) {
-        json response;
-        try {
-            response = json::parse(responseBody.toStdString());
-            errorMessage = QString::fromStdString(response.value("error", "неизвестная ошибка регистрации"));
-        } catch (const json::parse_error&) {
-            errorMessage = "Сервер прислал некорректный ответ";
-        }
+    const AuthResponse response = parseRegistrationResponse(
+        statusCode,
+        responseBody.toStdString(),
+        transportError
+    );
+    if (!response.success) {
+        errorMessage = QString::fromStdString(response.error);
         return false;
     }
 
+    errorMessage.clear();
     return true;
 }
 
